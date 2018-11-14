@@ -43,7 +43,7 @@ export default {
       })
     },
     checkUserType: function() {
-      if (repairApi.data.info.type > 1) {
+      if (repairApi.data.basic.staff_id > 0) {
         this.redirect(2)
       } else {
         this.redirect(1)
@@ -95,8 +95,9 @@ export default {
 
       }).catch(e=>{
         vm.$data.otpLoading=false
+        console.log(e)
         wx.showToast({
-          title: '获取验证码失败',
+          title: '获取失败('+ e +')',
           icon: 'none',
           duration: 2000
         })
@@ -108,18 +109,19 @@ export default {
     var vm = this
     fyAccount.init()
     repairApi.init()
-    if (vm.fyData.login) {
+    wx.showLoading({
+      title: '登录中',
+      mask: true
+    })
+    wxAccount.login().then(r => {
+      return repairApi.checkWxCode(r)
+    }).then(r => {
+      wx.hideLoading()
+      fyAccount.updateInfo(r)
       vm.checkUserType()
-    } else {
-      wxAccount.login().then(r => {
-        return repairApi.checkWxCode(r)
-      }).then(r => {
-        fyAccount.updateInfo(r)
-        vm.checkUserType()
-      }).catch(e => {
-        // stay here
-      })
-    }
+    }).catch(e => {
+      wx.hideLoading()
+    })
   },
 
 }

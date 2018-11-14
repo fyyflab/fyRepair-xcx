@@ -2,17 +2,23 @@
   <div>
     <view class="weui-cells weui-panel" v-if="ticketData!=null">
       <view class="weui-btn-area">
-        <view class="cell-text" style="line-height:1;min-height:25px;height:25px;" :class="statusColor[ticketData.status]">{{status[ticketData.status]}}</view>
-        <view class="weui-label">{{ticketData.time}}</view>
+        <view class="cell-text" style="line-height:1;min-height:25px;" :class="statusColor[ticketData.basic.status]">{{status[ticketData.basic.status]}}</view>
+        <view class="weui-label">{{ticketData.basic.time}}</view>
       </view>
-      <view class="weui-btn-area" v-if="!!ticketData.name">
-        <view class="weui-label">{{ (repairData.info.type>1) ? "机主" : "技术员"}}</view>
-        <view class="cell-text">{{ticketData.name}} {{(ticketData.vip==1)?"(会员)":""}}</view>
+      <view class="weui-btn-area">
+        <view class="weui-label">单号</view>
+        <view class="cell-text">{{ticketId}}</view>
       </view>
-      <view class="weui-btn-area inline" v-if="!!ticketData.name">
+      <view class="weui-btn-area" v-if="!!ticketData.staff">
+        <view class="weui-label">{{ (repairData.basic.staff_id > 0) ? "机主" : "技术员"}}</view>
+        <view class="cell-text">
+          {{ subject.name }} {{(ticketData.basic.vip==1)?"(会员)":""}}
+        </view>
+      </view>
+      <view class="weui-btn-area inline" v-if="!!ticketData.staff">
         <view style="width:100%">
           <view class="weui-label">联系方式</view>
-          <view class="cell-text">{{ticketData.phone}}</view>
+          <view class="cell-text">{{ subject.phone }}</view>
         </view>
         <view class="weui-btn-area inline-btn" style="height:23px;margin-top:3px;">
           <button @click="handlePhoneClick" class="weui-btn inline">复制</button>
@@ -28,16 +34,11 @@
       </view>
       <view class="weui-btn-area">
         <view class="weui-label">问题详情</view>
-        <view class="cell-text" style="line-height:1.5;padding-top:22rpx;">{{ticketData.description}}</view>
+        <view class="cell-text" style="line-height:1.5;padding-top:22rpx;">{{ticketData.extend.description}}</view>
       </view>
     </view>
-    <view v-if="ticketData!=null">
-      <singlebtn text="确认接单" type="primary" v-if="repairData.info.type==2 && ticketData.status==1" @submit="handleAccept" />
-      <singlebtn text="取消报修" type="warn" v-if="repairData.info.type!=2 && ticketData.status<3" @submit="handleCancel" :disabled="ticketData.status==2" />
-      <singlebtn text="确认完成" type="primary" v-if="repairData.info.type!=2 && ticketData.status>=3" @submit="handleFinish" :disabled="ticketData.status==4" />
-    </view>
-    <view style="height:30px"></view>
     <appfooter />
+    <view style="height:30px"></view>
   </div>
 </template>
 
@@ -54,7 +55,7 @@
         repairData: repairApi.data,
         ticketId: null,
         ticketData: null,
-        status: ['待分配', '待确认', '已取消', '维修中', '已完成', '重新分配'],
+        status: ['待分配', '待确认', '已取消', '维修中', '已完成', '重新分配'], // 目前只存在 0 (2) 3 4
         statusColor: ['blue', 'blue', 'gray', 'blue', 'black', 'blue'],
       }
     },
@@ -68,12 +69,12 @@
               switch (res.tapIndex) {
                 case 0:
                   wx.setClipboardData({
-                    data: vm.ticketData.phone
+                    data: vm.subject.phone
                   })
                   break;
                 case 1:
                   wx.makePhoneCall({
-                    phoneNumber: vm.ticketData.phone
+                    phoneNumber: vm.subject.phone
                   })
                   break;
               }
@@ -141,12 +142,18 @@
             console.log(v)
           } else {
             wx.showToast({
-              title: '获取详情失败',
+              title: '获取详情失败(' + v.code +')',
               icon: 'none',
               duration: 2000
             })
           }
         })
+      }
+    },
+    computed: {
+      subject: function(){
+        if (this.repairData == null || this.ticketData == null) return {}
+        return (this.repairData.basic.staff_id > 0) ? this.ticketData.user : this.ticketData.staff
       }
     },
     created() {

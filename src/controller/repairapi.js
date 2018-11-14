@@ -2,15 +2,16 @@ import config from '@/config/config'
 
 var repairData = {
     apiCookies: null,
-    info: {
-        type: null
+    basic: {
+        user_id: null,
+        staff_id: null
     },
     settings: {
         bindWx: false,
         useEmailNoty: false,
         useWxNoty: false
     },
-    new: null
+    new: false
 }
 
 export default{
@@ -48,10 +49,10 @@ export default{
         return new Promise(function (resolve, reject){
             vm.query("login", "POST", e).then(r => {
                 if (r.code == 200){
-                    if (e.new){
-                        vm.data.info.type = -1  // new user
+                    if (r.new){
+                        vm.data.new = true  // new user
                     } else {
-                        vm.data.info.type = r.basic.type
+                        vm.data.basic = r.basic
                     }
                     wx.setStorageSync("repairData", vm.data)
                     resolve(r.profile)
@@ -78,7 +79,7 @@ export default{
         return new Promise(function (resolve, reject){
             vm.query("wechat/code", "POST", e).then(r => {
                 if (r.code == 200){
-                    vm.data.info.type = r.basic.type
+                    vm.data.basic = r.basic
                     wx.setStorageSync("repairData", vm.data)
                     resolve(r.profile)
                 } else {
@@ -89,23 +90,14 @@ export default{
     },
     logout () {
         var vm = this
-        vm.query("wechat/logout", "GET").then(r => {
+        vm.query("logout", "GET").then(r => {
             vm.data.apiCookies = null
-            wx.clearStorageSync()
+            wx.clearStorageSync("repairData")
             wx.reLaunch({
                 url: "/pages/login/main"
             })
 
         })
-
-        /*
-        wx.removeStorage({key: "repairData", success: function (res) {} })
-        return new Promise(function (resolve, reject){
-            vm.query("logout", "GET").then(r => {
-                resolve(r)
-            })
-        })   
-        */ 
     },
     getDevices (){
         var vm = this
