@@ -27,17 +27,17 @@
               <view class="weui-cell_input weui-input">{{(sendData.newDeviceDate==null)?"":sendData.newDeviceDate}}</view>
             </picker>
           </view>
-          <view style="width:150%;padding:37px 0 0 0;color: #b2b2b2;text-align:right;font-size:30rpx;">拆机可能失去原厂保修</view>
+          <view style="width:150%;padding:37px 0 0 0;color: #b2b2b2;text-align:right;font-size:30rpx;">拆机会失去原厂保修</view>
         </view>
       </view>
 
       <view class="weui-cells weui-panel" :class="{active: isPanel2Focus}">
-        <textareabox @focus="textareaFocus" @blur="textareaBlur" @input="textareaInput" label="故障描述" name="username" placeholder="简单描述你遇到的问题..." />
+        <textareabox @focus="textareaFocus" @blur="textareaBlur" @input="textareaInput" label="故障描述" name="username" placeholder="简单描述你遇到的问题" />
       </view>
 
       <singlebtn :disabled="!isFinish" @submit="submit" text="立即报修" size="default" type="primary" />
     </div>
-    <view v-else class="weui-cells weui-panel" style="padding:25px; color:#b2b2b2;">{{errorText}}</view>
+    <view v-else class="weui-cells weui-panel" style="padding:40rpx; color:#a0a0a0;">{{errorText}}</view>
     <appfooter />
     <view style="height:10px"></view>
   </div>
@@ -88,8 +88,8 @@
         repairApi.getAvailable().then(r => {
           if (r.code >= 500) {
             vm.errorText = "抱歉，系统正忙，请稍后再试"
-          } else if (r.data <= 0) {
-            vm.errorText = "抱歉，目前没有空闲技术员，请稍后再试"
+          } else if (r.data.count <= 0) {
+            vm.errorText = r.data.text
           } else {
             vm.isAvailable = true
           }
